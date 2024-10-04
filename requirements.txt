@@ -1,0 +1,6 @@
+pygame
+opencv-python
+torch
+numpy
+ultralytics
+requests
