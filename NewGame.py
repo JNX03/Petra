@@ -9,6 +9,38 @@ import sys
 import random
 import time
 
+def check():
+    try:
+        player_img = load_image(player_url, size=(128, 128))
+        coil_img = load_image(coil_url, size=(64, 64))
+        background_img = load_image(background_url, size=(SCREEN_WIDTH, SCREEN_HEIGHT))
+        speed_boost_img = load_image(speed_boost_url, size=(64, 64))
+        magnet_img = load_image(magnet_url, size=(64, 64))
+        x2_img = load_image(x2_url, size=(64, 64))
+        bomb_img = load_image(bomb_url, size=(64, 64))
+        boss_img = load_image(boss_image_url, size=(200, 200))
+        if None in [player_img, coil_img, background_img, speed_boost_img, magnet_img, x2_img, bomb_img, boss_img]:
+            print("One or more images failed to load.")
+            return False
+        
+        try:
+            model = YOLO("best.pt")
+        except Exception as e:
+            print(f"Error loading YOLO model: {e}")
+            return False
+
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            print("Error: Could not open video source.")
+            return False
+        cap.release()
+
+        return True
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return False
+
+
 pygame.init()
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
@@ -17,6 +49,7 @@ pygame.display.set_caption("Underwater Object Detection Game")
 clock = pygame.time.Clock()
 FPS = 30
 
+check()
 def load_image(url, size=None):
     response = requests.get(url)
     image = pygame.image.load(BytesIO(response.content)).convert_alpha()

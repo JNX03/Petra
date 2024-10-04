@@ -1,0 +1,164 @@
+import pygame
+import cv2
+import torch
+import numpy as np
+from ultralytics import YOLO
+import requests
+from io import BytesIO
+import sys
+import random
+import time
+
+pygame.init()
+
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Underwater Object Detection Game")
+clock = pygame.time.Clock()
+FPS = 30
+
+def load_image(url, size=None):
+    try:
+        response = requests.get(url)
+        image = pygame.image.load(BytesIO(response.content)).convert_alpha()
+        if size:
+            image = pygame.transform.scale(image, size)
+        return image
+    except Exception as e:
+        print(f"Error loading image from {url}: {e}")
+        pygame.quit()
+        sys.exit()
+
+player_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/f2.png?alt=media&token=a01aa678-4437-4408-8479-e69ddb05c7f3"
+coil_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/image.png?alt=media&token=e7cd5083-7d87-466b-9296-8d171014f6be"
+background_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/DALLE_2024-10-02_11.02.21_-_A_cartoon-style_background_image_resembling_an_underwater_scene_with_light_aqua-green_tones._The_top_section_has_simplified_exaggerated_wave_patterns.webp?alt=media&token=f290632a-10ad-461e-9622-7ed49ccc7999"
+speed_boost_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTP_BimSKRnc-Z93BUPZQ6EHf99-PG4HxqnQ&s"
+magnet_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTT-MUVL0ITqUSJOqOahlPlOLyaF-H3hEgiHg&s"
+x2_url = "https://www.shutterstock.com/image-illustration/x2-3d-rendering-on-white-260nw-1467989987.jpg"
+bomb_url = "https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvam9iNjc4LTE0Ni1wLWwxNjRweGtuLnBuZw.png"
+boss_image_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/image-removebg-preview%20(63).png?alt=media&token=d83eab77-3b43-49e4-8a12-1906986e2e72"
+
+try:
+    player_img = load_image(player_url, size=(128, 128))
+    coil_img = load_image(coil_url, size=(64, 64))
+    background_img = load_image(background_url, size=(SCREEN_WIDTH, SCREEN_HEIGHT))
+    speed_boost_img = load_image(speed_boost_url, size=(64, 64))
+    magnet_img = load_image(magnet_url, size=(64, 64))
+    x2_img = load_image(x2_url, size=(64, 64))
+    bomb_img = load_image(bomb_url, size=(64, 64))
+    boss_img = load_image(boss_image_url, size=(200, 200))
+except Exception as e:
+    print(f"Error during initialization: {e}")
+    pygame.quit()
+    sys.exit()
+
+player_rect = player_img.get_rect(center=(SCREEN_WIDTH // 4, SCREEN_HEIGHT // 2))
+player_speed = 3
+
+def draw_text(text, size, color, x, y):
+    font = pygame.font.Font(None, size)
+    text_surface = font.render(text, True, color)
+    screen.blit(text_surface, (x, y))
+
+def start_menu():
+    start_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50, 200, 100)
+    running = True
+    while running:
+        screen.fill((0, 105, 148))
+        draw_text("Underwater Object Game", 50, (255, 255, 255), SCREEN_WIDTH // 2 - 200, SCREEN_HEIGHT // 2 - 150)
+        pygame.draw.rect(screen, (255, 255, 255), start_button)
+        draw_text("Start", 36, (0, 0, 0), start_button.x + 50, start_button.y + 25)
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if start_button.collidepoint(event.pos):
+                    return
+
+def pause_menu():
+    resume_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2, 200, 100)
+    paused = True
+    while paused:
+        screen.fill((50, 50, 50))
+        draw_text("Paused", 80, (255, 255, 255), SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 - 150)
+        pygame.draw.rect(screen, (255, 255, 255), resume_button)
+        draw_text("Resume", 36, (0, 0, 0), resume_button.x + 50, resume_button.y + 25)
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if resume_button.collidepoint(event.pos):
+                    paused = False
+
+def game_loop(camera_index):
+    try:
+        model = YOLO("best.pt")
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        pygame.quit()
+        sys.exit()
+
+    cap = cv2.VideoCapture(camera_index)
+    if not cap.isOpened():
+        print("Error: Camera not found or can't be opened")
+        pygame.quit()
+        sys.exit()
+
+    score = 0
+    coils = []
+    running = True
+
+    while running:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pause_menu()
+
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: Failed to capture video frame")
+            break
+
+        frame = cv2.resize(frame, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        try:
+            results = model(frame_rgb)
+            detections = results[0].boxes.data.tolist()
+        except Exception as e:
+            print(f"Error during detection: {e}")
+            break
+
+        screen.fill((0, 105, 148))
+        screen.blit(background_img, (0, 0))
+        screen.blit(player_img, player_rect)
+        draw_text(f"Score: {score}", 36, (255, 255, 255), 10, 10)
+        pygame.display.flip()
+
+    cap.release()
+    pygame.quit()
+    sys.exit()
+
+def main():
+    start_menu()
+    camera_index = 0
+    if camera_index == -1:
+        pygame.quit()
+        sys.exit()
+
+    try:
+        game_loop(camera_index)
+    except Exception as e:
+        print(f"Unhandled error: {e}")
+        pygame.quit()
+        sys.exit()
+
+main()
