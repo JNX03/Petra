@@ -9,6 +9,22 @@ import sys
 import random
 import time
 
+pygame.init()
+
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Underwater Object Detection Game")
+clock = pygame.time.Clock()
+FPS = 30
+
+
+def load_image(url, size=None):
+    response = requests.get(url)
+    image = pygame.image.load(BytesIO(response.content)).convert_alpha()
+    if size:
+        image = pygame.transform.scale(image, size)
+    return image
+
 def check():
     try:
         player_img = load_image(player_url, size=(128, 128))
@@ -40,22 +56,7 @@ def check():
         print(f"An unexpected error occurred: {e}")
         return False
 
-
-pygame.init()
-
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Underwater Object Detection Game")
-clock = pygame.time.Clock()
-FPS = 30
-
 check()
-def load_image(url, size=None):
-    response = requests.get(url)
-    image = pygame.image.load(BytesIO(response.content)).convert_alpha()
-    if size:
-        image = pygame.transform.scale(image, size)
-    return image
 
 player_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/f2.png?alt=media&token=a01aa678-4437-4408-8479-e69ddb05c7f3"
 coil_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/image.png?alt=media&token=e7cd5083-7d87-466b-9296-8d171014f6be"
