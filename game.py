@@ -23,9 +23,9 @@ def load_image(url, size=None):
         image = pygame.transform.scale(image, size)
     return image
 
-player_url = "https://cdn.discordapp.com/attachments/754347629604896898/1290896745999372360/f2.png?ex=66fe20c7&is=66fccf47&hm=3f194fb7164b655da4bf6bdf28b4e43fbda5813df3890e1d2f22c25fb92cca8b&"
-coil_url = "https://cdn.discordapp.com/attachments/754347629604896898/1290897191858077768/image.png?ex=66fe2132&is=66fccfb2&hm=7a1f710133672cbfbb186b0d449b475be101fe783b0564ff017e4ca4062557dd&"
-background_url = "https://cdn.discordapp.com/attachments/754347629604896898/1290896777662169139/DALLE_2024-10-02_11.02.21_-_A_cartoon-style_background_image_resembling_an_underwater_scene_with_light_aqua-green_tones._The_top_section_has_simplified_exaggerated_wave_patterns.webp?ex=66fe20cf&is=66fccf4f&hm=5c2f37a63bedffc192cad337db21da1e2a3eaf446e37d90806fcdc587df02c10&"
+player_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/f2.png?alt=media&token=a01aa678-4437-4408-8479-e69ddb05c7f3"
+coil_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/image.png?alt=media&token=e7cd5083-7d87-466b-9296-8d171014f6be"
+background_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/DALLE_2024-10-02_11.02.21_-_A_cartoon-style_background_image_resembling_an_underwater_scene_with_light_aqua-green_tones._The_top_section_has_simplified_exaggerated_wave_patterns.webp?alt=media&token=f290632a-10ad-461e-9622-7ed49ccc7999"
 
 try:
     player_img = load_image(player_url, size=(64, 64))
