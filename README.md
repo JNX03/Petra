@@ -9,7 +9,7 @@ Before running the project, make sure you have the following installed:
 - NumPy (`numpy`)
 - Matplotlib (`matplotlib`)
 - Ultralytics YOLO (`ultralytics`) - YoloV10
-
+- pygame
 ## Setup
 
 1. Clone the repository:
