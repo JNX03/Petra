@@ -60,10 +60,10 @@ def load_image(url, size=None):
 player_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/f2.png?alt=media&token=a01aa678-4437-4408-8479-e69ddb05c7f3"
 coil_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/image.png?alt=media&token=e7cd5083-7d87-466b-9296-8d171014f6be"
 background_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/DALLE_2024-10-02_11.02.21_-_A_cartoon-style_background_image_resembling_an_underwater_scene_with_light_aqua-green_tones._The_top_section_has_simplified_exaggerated_wave_patterns.webp?alt=media&token=f290632a-10ad-461e-9622-7ed49ccc7999"
-speed_boost_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTP_BimSKRnc-Z93BUPZQ6EHf99-PG4HxqnQ&s"
-magnet_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTT-MUVL0ITqUSJOqOahlPlOLyaF-H3hEgiHg&s"
-x2_url = "https://www.shutterstock.com/image-illustration/x2-3d-rendering-on-white-260nw-1467989987.jpg"
-bomb_url = "https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvam9iNjc4LTE0Ni1wLWwxNjRweGtuLnBuZw.png"
+speed_boost_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/images%20(1).jpg?alt=media&token=a5f1cf23-fda6-4cc9-a7c6-6c4eadcd3c21"
+magnet_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/images.jpg?alt=media&token=b9ac4fdd-b44e-497a-a4da-1e5d47eb624b"
+x2_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/x2-3d-rendering-on-white-260nw-1467989987%20(1).webp?alt=media&token=176b3b0a-2573-44bf-bb48-9d48fea098ac"
+bomb_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/depositphotos_3622851-stock-photo-bomb.jpg?alt=media&token=5c0ed80f-d133-4ecc-ba8b-2dfd2b343fdb"
 boss_image_url = "https://firebasestorage.googleapis.com/v0/b/gcxsys.appspot.com/o/image-removebg-preview%20(63).png?alt=media&token=d83eab77-3b43-49e4-8a12-1906986e2e72"
 
 try:
