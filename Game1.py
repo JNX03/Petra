@@ -143,7 +143,7 @@ def game_loop(camera_index):
                 cv2.putText(frame, label, (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
 
         if not object_detected:
-            player_rect.y -= player_speed // 2
+            player_rect.y -= player_speed * 2
 
         previous_positions = current_positions.copy()
         player_rect.y = max(SCREEN_HEIGHT // 4, min(player_rect.y, SCREEN_HEIGHT - player_rect.height))
