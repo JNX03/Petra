@@ -1,0 +1,397 @@
+<!-- Credit : Create by @Jnx03 - Petra 2024  -->
+<!-- Please fucking give me some credit na or I mad at you 😡  -->
+<!-- Include best.onnx file in same directory to make ai can be able to use-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean The Sea</title>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #3489eb;
+        }
+        canvas {
+            display: block;
+        }
+        button {
+            position: absolute;
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #0057e7;
+            color: white;
+        }
+        #startButton, #quitButton, #creditsButton, #restartButton {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #creditsButton {
+            top: 60%;
+            display: none;
+        }
+        #quitButton {
+            top: 60%;
+        }
+        #restartButton {
+            display: none;
+        }
+        #title {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+            font-family: Arial, sans-serif;
+        }
+        #credits {
+            display: block !important;
+            position: absolute;
+            top: 80%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: white;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="title">Clean The Sea</div>
+    <button id="startButton">Start Game</button>
+    <button id="creditsButton">Credits</button>
+    <button id="quitButton">Quit</button>
+    <button id="restartButton">Restart Game</button>
+    <div id="credits" style="display: none;">Credits: Created by @jxxn03z (Chawabhon Netisingha)</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const startButton = document.getElementById('startButton');
+        const creditsButton = document.getElementById('creditsButton');
+        const quitButton = document.getElementById('quitButton');
+        const restartButton = document.getElementById('restartButton');
+        const creditsDiv = document.getElementById('credits');
+        const titleDiv = document.getElementById('title');
+
+        let player = {x: 100, y: canvas.height / 2, width: 128, height: 128, speed: 5};
+        let bullets = [];
+        let coils = [];
+        let bombs = [];
+        let powerUps = [];
+        let inBossFight = false;
+        let boss = {x: canvas.width - 200, y: canvas.height / 2, width: 200, height: 200, health: 5};
+        let score = 0;
+        let model;
+        let speedBoostActive = false;
+        let x2Active = false;
+        let speedBoostTimer = 0;
+        let x2Timer = 0;
+
+        let gameOver = false;
+        let redScreenOpacity = 0;
+        let backgroundX = 0;
+        const backgroundSpeed = 2;
+        const FPS = 60;
+
+        let backgroundImage = new Image();
+        let playerImage = new Image();
+        let coilImage = new Image();
+        let bombImage = new Image();
+        let bossImage = new Image();
+        let speedBoostImage = new Image();
+        let x2Image = new Image();
+        let menuBackground = new Image();
+
+        backgroundImage.src = 'https://firebasestorage.googleapis.com/v0/b/petra-970cf.appspot.com/o/DALLE_2024-10-02_11.02.21_-_A_cartoon-style_background_image_resembling_an_underwater_scene_with_light_aqua-green_tones._The_top_section_has_simplified_exaggerated_wave_patterns.webp?alt=media&token=9afffd46-22f5-42bd-b2ee-8d008ebad21b';
+        playerImage.src = 'https://firebasestorage.googleapis.com/v0/b/petra-970cf.appspot.com/o/f2.png?alt=media&token=7b677c82-d7c6-493a-9460-424e98f8fea6';
+        coilImage.src = 'https://firebasestorage.googleapis.com/v0/b/petra-970cf.appspot.com/o/image_2024-10-05_173542106-removebg-preview.png?alt=media&token=464d4533-33bc-4dcc-ab0f-fe39acf70b65';
+        bombImage.src = 'https://firebasestorage.googleapis.com/v0/b/petra-970cf.appspot.com/o/awdawdsawd-removebg-preview.png?alt=media&token=8d4bce90-4eb5-45de-b4b7-0e332a3cdcd2';
+        bossImage.src = 'https://firebasestorage.googleapis.com/v0/b/petra-970cf.appspot.com/o/image-removebg-preview%20(63).png?alt=media&token=6a5b0e50-17a7-41aa-a349-9865c1026a1d';
+        speedBoostImage.src = 'https://firebasestorage.googleapis.com/v0/b/petra-970cf.appspot.com/o/dasdaswa-removebg-preview.png?alt=media&token=9167921b-67cc-4418-a506-7275c165596d';
+        x2Image.src = 'https://firebasestorage.googleapis.com/v0/b/petra-970cf.appspot.com/o/images__1_-removebg-preview.png?alt=media&token=9068387e-fba5-4373-80ac-1297b924bbdb';
+        menuBackground.src = 'https://firebasestorage.googleapis.com/v0/b/petra-970cf.appspot.com/o/underwater_background_menu.png?alt=media';
+
+        const loadModel = async () => {
+            try {
+                model = await ort.InferenceSession.create('best.onnx');
+                console.log("Model loaded successfully!");
+            } catch (err) {
+                console.error("Failed to load ONNX model", err);
+            }
+        };
+
+        const startCameraDetection = () => {
+            const video = document.createElement('video');
+            video.setAttribute('autoplay', '');
+            video.setAttribute('playsinline', '');
+
+            navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+                video.srcObject = stream;
+                video.play();
+                detectObjects(video);
+            });
+        };
+
+        const detectObjects = async (video) => {
+            while (true) {
+                const canvasForDetection = document.createElement('canvas');
+                canvasForDetection.width = video.videoWidth;
+                canvasForDetection.height = video.videoHeight;
+                const ctxForDetection = canvasForDetection.getContext('2d');
+                ctxForDetection.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+                const imageTensor = tf.browser.fromPixels(canvasForDetection);
+                const detections = await model.run({ input: imageTensor });
+                requestAnimationFrame(() => detectObjects(video));
+            }
+        };
+
+        const drawBackground = () => {
+            ctx.drawImage(backgroundImage, backgroundX, 0, canvas.width, canvas.height);
+            ctx.drawImage(backgroundImage, backgroundX + canvas.width, 0, canvas.width, canvas.height);
+            backgroundX -= backgroundSpeed;
+            if (backgroundX <= -canvas.width) {
+                backgroundX = 0;
+            }
+        };
+
+        const drawPlayer = () => {
+            ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+        };
+
+        const drawBullets = () => {
+            bullets.forEach((bullet, index) => {
+                bullet.x += 10;
+                ctx.fillStyle = 'red';
+                ctx.fillRect(bullet.x, bullet.y, 5, 5);
+                if (bullet.x > canvas.width) {
+                    bullets.splice(index, 1);
+                }
+            });
+        };
+
+        const drawCoils = () => {
+            coils.forEach((coil, index) => {
+                coil.x -= player.speed;
+                ctx.drawImage(coilImage, coil.x, coil.y, 64, 64);
+                if (coil.x < -64) {
+                    coils.splice(index, 1);
+                }
+            });
+        };
+
+        const drawBombs = () => {
+            bombs.forEach((bomb, index) => {
+                bomb.x -= player.speed;
+                ctx.drawImage(bombImage, bomb.x, bomb.y, 64, 64);
+                if (bomb.x < -64) {
+                    bombs.splice(index, 1);
+                }
+            });
+        };
+
+        const drawBoss = () => {
+            if (inBossFight) {
+                ctx.drawImage(bossImage, boss.x, boss.y, boss.width, boss.height);
+            }
+        };
+
+        const drawPowerUps = () => {
+            powerUps.forEach((powerUp, index) => {
+                powerUp.x -= player.speed;
+                if (powerUp.type === 'speed_boost') {
+                    ctx.drawImage(speedBoostImage, powerUp.x, powerUp.y, 64, 64);
+                } else if (powerUp.type === 'x2') {
+                    ctx.drawImage(x2Image, powerUp.x, powerUp.y, 64, 64);
+                }
+
+                if (powerUp.x < -64) {
+                    powerUps.splice(index, 1);
+                }
+            });
+        };
+
+        const drawScore = () => {
+            ctx.font = '24px Arial';
+            ctx.fillStyle = 'white';
+            ctx.fillText(`Score: ${score}`, 20, 30);
+        };
+
+        const drawPowerUpDuration = () => {
+            ctx.font = '20px Arial';
+            ctx.fillStyle = 'yellow';
+            if (speedBoostActive) {
+                ctx.fillText(`Speed Boost: ${Math.ceil(speedBoostTimer / FPS)}s`, 20, 60);
+            }
+            if (x2Active) {
+                ctx.fillText(`X2 Score: ${Math.ceil(x2Timer / FPS)}s`, 20, 90);
+            }
+        };
+
+        const handleCollisions = () => {
+            coils.forEach((coil, index) => {
+                if (player.x < coil.x + 64 && player.x + player.width > coil.x && player.y < coil.y + 64 && player.y + player.height > coil.y) {
+                    score += x2Active ? 2 : 1;
+                    coils.splice(index, 1);
+                }
+            });
+
+            bombs.forEach((bomb, index) => {
+                if (player.x < bomb.x + 64 && player.x + player.width > bomb.x && player.y < bomb.y + 64 && player.y + player.height > bomb.y) {
+                    endGame();
+                }
+            });
+
+            powerUps.forEach((powerUp, index) => {
+                if (player.x < powerUp.x + 64 && player.x + player.width > powerUp.x && player.y < powerUp.y + 64 && player.y + player.height > powerUp.y) {
+                    if (powerUp.type === 'speed_boost') {
+                        activateSpeedBoost();
+                    } else if (powerUp.type === 'x2') {
+                        activateX2PowerUp();
+                    }
+                    powerUps.splice(index, 1);
+                }
+            });
+        };
+
+        const activateSpeedBoost = () => {
+            speedBoostActive = true;
+            speedBoostTimer = FPS * 10;
+            player.speed *= 2;
+        };
+
+        const activateX2PowerUp = () => {
+            x2Active = true;
+            x2Timer = FPS * 10;
+        };
+
+        const handlePowerUpTimers = () => {
+            if (speedBoostActive) {
+                speedBoostTimer--;
+                if (speedBoostTimer <= 0) {
+                    speedBoostActive = false;
+                    player.speed /= 2;
+                }
+            }
+
+            if (x2Active) {
+                x2Timer--;
+                if (x2Timer <= 0) {
+                    x2Active = false;
+                }
+            }
+        };
+
+        const spawnCoil = () => {
+            coils.push({x: canvas.width + Math.random() * 200, y: Math.random() * (canvas.height - 64)});
+        };
+
+        const spawnBomb = () => {
+            bombs.push({x: canvas.width + Math.random() * 200, y: Math.random() * (canvas.height - 64)});
+        };
+
+        const spawnPowerUp = () => {
+            const powerUpType = Math.random() > 0.5 ? 'speed_boost' : 'x2';
+            powerUps.push({type: powerUpType, x: canvas.width + Math.random() * 200, y: Math.random() * (canvas.height - 64)});
+        };
+
+        const endGame = () => {
+            gameOver = true;
+            removeAllGameItems();
+            showRestartButton();
+            redScreenOpacity = 0.8;
+        };
+
+        const removeAllGameItems = () => {
+            coils = [];
+            bombs = [];
+            powerUps = [];
+            bullets = [];
+        };
+
+        const showRestartButton = () => {
+            restartButton.style.display = 'block';
+            restartButton.addEventListener('click', () => {
+                document.location.reload();
+            });
+        };
+
+        const gameLoop = () => {
+            if (gameOver) {
+                drawRedScreen();
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            drawPlayer();
+            drawBullets();
+            drawCoils();
+            drawBombs();
+            drawBoss();
+            drawPowerUps();
+            drawScore();
+            drawPowerUpDuration();
+            handleCollisions();
+            handlePowerUpTimers();
+            requestAnimationFrame(gameLoop);
+        };
+
+        const drawRedScreen = () => {
+            ctx.fillStyle = `rgba(255, 0, 0, ${redScreenOpacity})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            redScreenOpacity -= 0.01;
+            if (redScreenOpacity <= 0) {
+                redScreenOpacity = 0;
+            }
+        };
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                player.y -= player.speed;
+            }
+            if (e.key === 'ArrowDown') {
+                player.y += player.speed;
+            }
+            if (e.key === ' ') {
+                bullets.push({x: player.x + player.width, y: player.y + player.height / 2});
+            }
+        });
+
+        startButton.addEventListener('click', () => {
+            startButton.style.display = 'none';
+            creditsButton.style.display = 'none';
+            quitButton.style.display = 'none';
+            titleDiv.style.display = 'none';
+            creditsDiv.style.display = 'none';
+            loadModel().then(() => {
+                gameLoop();
+                startCameraDetection();
+                setInterval(spawnCoil, 2000);
+                setInterval(spawnBomb, 4000);
+                setInterval(spawnPowerUp, 6000);
+            });
+        });
+
+        creditsButton.addEventListener('click', () => {
+            creditsDiv.style.display = 'block';
+        });
+
+        quitButton.addEventListener('click', () => {
+            window.close();
+        });
+    </script>
+</body>
+</html>
