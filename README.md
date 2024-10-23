@@ -65,7 +65,7 @@ Before running the project, make sure you have the following installed:
 ```
 MIT License
 
-Copyright (c) 2024 Chawabhon netisingha
+Copyright (c) 2024 Chawabhon netisingha - Petra
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
